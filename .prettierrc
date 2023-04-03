@@ -1,0 +1,45 @@
+{
+  "trailingComma": "none",
+  "singleQuote": true,
+  "overrides": [
+    {
+      "files": "**/lwc/**/*.html",
+      "options": {
+        "parser": "lwc",
+        "printWidth": 100,
+        "tabWidth": 4
+      }
+    },
+    {
+      "files": "*.{cmp,page,component}",
+      "options": {
+        "printWidth": 100,
+        "tabWidth": 4,
+        "parser": "html"
+      }
+    },
+    {
+      "files": "*.{cls,trigger}",
+      "options": {
+        "printWidth": 100,
+        "tabWidth": 4,
+        "apexInsertFinalNewline": false
+      }
+    },
+    {
+      "files": "*.js",
+      "options": {
+        "printWidth": 100,
+        "tabWidth": 4
+      }
+    },
+    {
+      "files": "*.xml",
+      "options": {
+        "printWidth": 120,
+        "tabWidth": 4,
+        "xmlSelfClosingSpace": false
+      }
+    }
+  ]
+}
