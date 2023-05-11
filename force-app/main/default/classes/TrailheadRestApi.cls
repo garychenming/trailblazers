@@ -94,12 +94,16 @@ global without sharing class TrailheadRestApi {
 
     private static String formats(List<Trailblazer__c> trailblazers) {
         String result = '';
+        Integer totalBadges = 0;
+        Integer totalPoints = 0;
 
         for (Trailblazer__c trailblazer : trailblazers) {
             result += format(trailblazer);
+            totalBadges += (Integer) trailblazer.NewBadges__c;
+            totalPoints += (Integer) trailblazer.NewPoints__c;
         }
 
-        result += '\nTotal Count: ' + trailblazers.size();
+        result += '\nTotal Count: ' + trailblazers.size() + '\n' + 'Total Badges: ' + totalBadges+ '\n' + 'Total Points: ' + totalPoints;
 
         return result;
     }
