@@ -1,11 +1,11 @@
 public inherited sharing class GetTrailheadPointsApi {
-    public static TrailheadProfileStats get(String trailblazerId) {
+    public static TrailheadProfileStats get(String slug) {
         HttpRequest request = new HttpRequest();
         request.setEndpoint('https://profile.api.trailhead.com/graphql');
         request.setMethod('POST');
         request.setHeader('Content-Type', 'application/json');
 
-        request.setBody(getBody(trailblazerId));
+        request.setBody(getBody(slug));
         HttpResponse res = (new Http()).send(request);
 
         TrailheadProfileStats trailheadProfileStats = (TrailheadProfileStats) JSON.deserialize(
@@ -20,15 +20,16 @@ public inherited sharing class GetTrailheadPointsApi {
         return trailheadProfileStats;
     }
 
-    private static String getBody(String trailblazerId) {
+    private static String getBody(String slug) {
         return JSON.serialize(
             new Map<String, Object>{
                 'operationName' => 'GetTrailheadRank',
                 'variables' => new Map<String, Object>{
-                    'queryProfile' => true,
-                    'trailblazerId' => trailblazerId
+                    'queryProfileById' => false,
+                    'queryProfileBySlug' => true,
+                    'slug' => slug
                 },
-                'query' => 'fragment TrailheadRank on TrailheadRank {\n  __typename\n  title\n  requiredPointsSum\n  requiredBadgesCount\n  imageUrl\n}\n\nfragment PublicProfile on PublicProfile {\n  __typename\n  trailheadStats {\n    __typename\n    earnedPointsSum\n    earnedBadgesCount\n    completedTrailCount\n    rank {\n      ...TrailheadRank\n    }\n    nextRank {\n      ...TrailheadRank\n    }\n  }\n}\n\nquery GetTrailheadRank($trailblazerId: String, $queryProfile: Boolean!) {\n  profile(trailblazerId: $trailblazerId) @include(if: $queryProfile) {\n    ... on PublicProfile {\n      ...PublicProfile\n    }\n    ... on PrivateProfile {\n      __typename\n    }\n  }\n}\n'
+                'query' => 'fragment TrailheadRank on TrailheadRank {\n  __typename\n  title\n  requiredPointsSum\n  requiredBadgesCount\n  imageUrl\n}\n\nfragment PublicProfile on PublicProfile {\n  __typename\n  trailheadStats {\n    __typename\n    earnedPointsSum\n    earnedBadgesCount\n    completedTrailCount\n    rank {\n      ...TrailheadRank\n    }\n    nextRank {\n      ...TrailheadRank\n    }\n  }\n}\n\nquery GetTrailheadRank($trailblazerId: String, $queryProfileById: Boolean!, $slug: String, $queryProfileBySlug: Boolean!) {\n  profileById: profile(trailblazerId: $trailblazerId) @include(if: $queryProfileById) {\n    ... on PublicProfile {\n      ...PublicProfile\n    }\n    ... on PrivateProfile {\n      __typename\n    }\n  }\n  profileBySlug: profile(slug: $slug) @include(if: $queryProfileBySlug) {\n    ... on PublicProfile {\n      ...PublicProfile\n    }\n    ... on PrivateProfile {\n      __typename\n    }\n  }\n}\n'
             }
         );
     }
@@ -43,10 +44,10 @@ public inherited sharing class GetTrailheadPointsApi {
     }
 
     public class Data {
-        public Profile profile { get; set; }
+        public ProfileBySlug profileBySlug { get; set; }
     }
 
-    public class Profile {
+    public class ProfileBySlug {
         public String typename { get; set; }
         public TrailheadStats trailheadStats { get; set; }
     }
