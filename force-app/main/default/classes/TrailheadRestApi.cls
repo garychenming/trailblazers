@@ -13,8 +13,10 @@ global without sharing class TrailheadRestApi {
                 result = getBadgeRanks();
             } else if (param == 'last month' || param == 'l') {
                 result = getLastMonthRanks();
-            } else {
+            } else if (param == 'all' || param == 'a') {
                 result = getMonthRanks();
+            } else {
+                result = getBadgeRanks();
             }
 
             RestContext.response.statusCode = 200;
@@ -33,10 +35,11 @@ global without sharing class TrailheadRestApi {
                     Rank__c,
                     Badges__c,
                     NewPoints__c,
+                    CertificationCount__c,
                     NewBadges__c
                 FROM Trailblazer__c
                 WHERE IsCharketEmployee__c = TRUE AND NewPoints__c > 0
-                ORDER BY NewPoints__c DESC
+                ORDER BY NewPoints__c DESC, NewBadges__c DESC
             ]
         );
     }
@@ -51,10 +54,11 @@ global without sharing class TrailheadRestApi {
                     Rank__c,
                     Badges__c,
                     NewPoints__c,
+                    CertificationCount__c,
                     NewBadges__c
                 FROM Trailblazer__c
                 WHERE IsCharketEmployee__c = TRUE AND NewBadges__c > 0
-                ORDER BY NewBadges__c DESC
+                ORDER BY NewBadges__c DESC, NewPoints__c DESC
             ]
         );
     }
@@ -69,6 +73,7 @@ global without sharing class TrailheadRestApi {
                     Rank__c,
                     Badges__c,
                     NewPoints__c,
+                    CertificationCount__c,
                     NewBadges__c
                 FROM Trailblazer__c
                 WHERE IsCharketEmployee__c = TRUE
@@ -98,28 +103,39 @@ global without sharing class TrailheadRestApi {
         Integer totalPoints = 0;
 
         for (Trailblazer__c trailblazer : trailblazers) {
-            result += format(trailblazer);
+            result += format(trailblazer, trailblazers.indexOf(trailblazer));
             totalBadges += (Integer) trailblazer.NewBadges__c;
             totalPoints += (Integer) trailblazer.NewPoints__c;
         }
 
-        result += '\nTotal Count: ' + trailblazers.size() + '\n' + 'Total Badges: ' + totalBadges+ '\n' + 'Total Points: ' + totalPoints;
+        result +=
+            '\nTotal Count: ' +
+            trailblazers.size() +
+            '\n' +
+            'Total Badges: ' +
+            totalBadges +
+            '\n' +
+            'Total Points: ' +
+            totalPoints;
 
         return result;
     }
 
-    private static String format(Trailblazer__c trailblazer) {
-        return 'Points: ' +
+    private static String format(Trailblazer__c trailblazer, Integer index) {
+        return (index + 1) +
+            '. Points: `' +
             trailblazer.Points__c +
-            ' Badges: ' +
+            '` Badges: `' +
             trailblazer.Badges__c +
-            ' New Points: ' +
+            '` New Points: `' +
             (Integer) trailblazer.NewPoints__c +
-            ' New Badges: ' +
+            '` New Badges: `' +
             (Integer) trailblazer.NewBadges__c +
-            ' Rank: ' +
+            '` Rank: `' +
             trailblazer.Rank__c +
-            ' Name: <' +
+            '` Certs: `' +
+            trailblazer.CertificationCount__c +
+            '` Name: <' +
             trailblazer.ProfileUrl__c +
             '|' +
             trailblazer.Name +

@@ -3,10 +3,10 @@ public with sharing class SlackUtil {
     }
 
     public static void sendNotificationToSlack(String message) {
+        SlackSettings__c settings = SlackSettings__c.getInstance(UserInfo.getUserId());
+
         HttpRequest request = new HttpRequest();
-        request.setEndpoint(
-            'https://hooks.slack.com/services/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'
-        );
+        request.setEndpoint(settings.WebhookURL__c);
         request.setMethod('POST');
         request.setHeader('Content-Type', 'application/json');
         request.setBody(message);
