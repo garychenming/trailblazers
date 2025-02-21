@@ -2,6 +2,8 @@ public inherited sharing class TrailblazerTriggerHandler {
     public static void triggerHandler() {
         try {
             if (Trigger.isAfter && Trigger.isUpdate) {
+                Map<Trailblazer__c, Trailblazer__c> needNotifyTrailblazers = new Map<Trailblazer__c, Trailblazer__c>();
+                
                 for (Trailblazer__c trailblazer : (List<Trailblazer__c>) Trigger.new) {
                     Trailblazer__c oldTrailblazer = (Trailblazer__c) Trigger.oldMap
                         .get(trailblazer.Id);
@@ -11,9 +13,15 @@ public inherited sharing class TrailblazerTriggerHandler {
                         oldTrailblazer.Points__c != trailblazer.Points__c ||
                         oldTrailblazer.CertificationCount__c != trailblazer.CertificationCount__c
                     ) {
-                        System.enqueueJob(new NotifySlack(trailblazer, oldTrailblazer));
+                        needNotifyTrailblazers.put(trailblazer, oldTrailblazer);
                     }
                 }
+
+                if(needNotifyTrailblazers.isEmpty()) {
+                    return;
+                }
+                
+                System.enqueueJob(new NotifySlack(needNotifyTrailblazers));
             }
         } catch (Exception ex) {
             insert new Log__c(
@@ -24,16 +32,16 @@ public inherited sharing class TrailblazerTriggerHandler {
     }
 
     public class NotifySlack implements Queueable, Database.AllowsCallouts {
-        Trailblazer__c trailblazer;
-        Trailblazer__c oldTrailblazer;
+        Map<Trailblazer__c, Trailblazer__c> needNotifyTrailblazers;
 
-        public NotifySlack(Trailblazer__c trailblazer, Trailblazer__c oldTrailblazer) {
-            this.trailblazer = trailblazer;
-            this.oldTrailblazer = oldTrailblazer;
+        public NotifySlack(Map<Trailblazer__c, Trailblazer__c> needNotifyTrailblazers) {
+            this.needNotifyTrailblazers = needNotifyTrailblazers;
         }
 
         public void execute(QueueableContext qc) {
-            notifySlack(trailblazer, oldTrailblazer);
+            for(Trailblazer__c trailblazer : needNotifyTrailblazers.keySet()) {
+                notifySlack(trailblazer, needNotifyTrailblazers.get(trailblazer));
+            }
         }
     }
 
@@ -197,8 +205,6 @@ public inherited sharing class TrailblazerTriggerHandler {
         textObject.text = badgesStr;
 
         String message = JSON.serialize(new Map<String, Object>{ 'blocks' => blocks });
-
-        System.debug('----' + message);
 
         SlackUtil.sendNotificationToSlack(message);
     }
